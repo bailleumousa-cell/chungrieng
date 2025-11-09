@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hành Trình Lên Ngôi - Bảng Điều Khiển GM</title>
+    
+<script src="https://cdn.tailwindcss.com"></script>
+    
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Thiết lập font chữ và màu sắc chủ đạo Neo-Classical */
+        :root {
+            --color-cream: #f9f7f0; /* Màu nền kem nhạt */
+            --color-dark-navy: #1f3a53; /* Màu xanh navy đậm */
+            --color-gold: #c2a16d; /* Màu vàng đồng (Gold Accent) */
+            --color-accent-dark: #3a5879; /* Xanh đậm thứ cấp */
+            --shadow-elegant: 0 4px 15px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--color-gold);
+            --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-cream);
+            color: var(--color-dark-navy);
+            transition: background-color 0.5s;
+            /* BACKGROUND CỔ ĐIỂN VÀ PARALLAX */
+            background-image: url('https://i.imgur.com/G4P4q1M.png'); /* URL ảnh nền cổ điển (Họa tiết Damask) */
+            background-size: cover;
+            background-attachment: fixed; /* Hiệu ứng Parallax */
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* CONTAINER CHÍNH - Có độ trong suốt nhẹ */
+        #app-container {
+            background-color: rgba(255, 255, 255, 0.9); /* Nền trắng hơi trong suốt */
+            border: 3px solid var(--color-gold);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35), 0 0 0 10px rgba(255, 255, 255, 0.7); /* Bóng đổ mạnh hơn */
+            transition: all 0.3s;
+        }
+
+        /* Nút chung */
+        .elegant-btn {
+            background-color: var(--color-dark-navy);
+            color: white;
+            border: 2px solid var(--color-gold);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease-in-out;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        .elegant-btn:hover {
+            background-color: var(--color-accent-dark);
+            transform: translateY(-2px); /* Hiệu ứng nhấc lên rõ hơn */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+        .elegant-btn:disabled {
+            background-color: #94a3b8;
+            border-color: #cbd5e1;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Input Field */
+        input[type="text"] {
+            border: 2px solid var(--color-gold); /* Viền vàng đậm hơn */
+            box-shadow: var(--shadow-inset);
+            background-color: rgba(255, 255, 255, 0.85); /* Hơi trong suốt */
+        }
+
+        /* Team Status Card */
+        .team-card {
+            background-color: rgba(255, 255, 255, 0.9); /* Hơi trong suốt */
+            border: 1px solid var(--color-gold);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15); /* Bóng đổ rõ hơn */
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .team-card:hover {
+            transform: translateY(-4px); /* Nhấc lên nhiều hơn */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        }
+        .team-card.selected {
+            border-color: var(--color-dark-navy);
+            box-shadow: 0 0 0 5px var(--color-gold), 0 10px 20px rgba(0, 0, 0, 0.25); /* Bóng đổ và viền sáng hơn */
+        }
+        
+        /* Rank Colors (Muted but distinct) */
+        .rank-0 { background-color: #b91c1c; } /* Vô gia cư - Deep Red */
+        .rank-1 { background-color: #b45309; } /* Nông dân - Deep Orange */
+        .rank-2 { background-color: #a16207; } /* Địa chủ - Deep Gold */
+        .rank-3 { background-color: #065f46; } /* Quan - Deep Green */
+        .rank-4 { background-color: #1e40af; } /* Vua - Deep Blue */
+
+        /* Quiz area - Framed panel */
+        #game-controls {
+            border: 3px double var(--color-gold);
+            background-color: rgba(255, 255, 255, 0.95); /* Gần như không trong suốt để dễ đọc */
+            padding: 30px;
+        }
+
+        /* Answer Buttons */
+        .answer-btn {
+            background-color: #ffffff;
+            border: 1px solid var(--color-accent-dark);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+        }
+        .answer-btn:hover:not(:disabled) {
+            background-color: var(--color-cream);
+            border-color: var(--color-gold);
+            transform: scale(1.02); /* Hiệu ứng phóng to nhẹ */
+        }
+        .answer-btn.bg-green-500 { background-color: #065f46 !important; }
+        .answer-btn.bg-red-500 { background-color: #b91c1c !important; }
+
+        /* Modal */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.8); /* Nền tối hơn cho modal */
+            backdrop-filter: blur(8px); /* Blur mạnh hơn */
+            z-index: 1000; /* Đảm bảo modal nằm trên cùng */
+        }
+        #card-modal > div, #summary-modal > div, #custom-message-modal > div {
+            border: 4px double var(--color-gold); /* Viền double gold cho modal */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    
+<div id="app-container" class="max-w-7xl mx-auto rounded-xl p-6 sm:p-10">
+
+        
+<header class="text-center mb-10 border-b-4 border-double border-gray-300 pb-4">
+            <h1 class="text-5xl font-extrabold tracking-wider" style="color: var(--color-dark-navy);">Bảng Điều Khiển: Hành Trình Lên Ngôi</h1>
+            <p class="text-xl mt-3 italic font-semibold" style="color: var(--color-gold);">Sự Thanh Thế Của Người Quản Trò</p>
+        </header>
+
+        
+<div id="setup-section" class="mb-10 pb-8 border-b-2 border-dashed border-gray-300">
+            <h2 class="text-3xl font-bold mb-6 flex items-center" style="color: var(--color-dark-navy);">
+                <span class="text-4xl mr-3 font-extrabold" style="color: var(--color-gold);">I.</span> Thiết Lập Đội Chơi
+            </h2>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input type="text" id="team-name-input" placeholder="Nhập tên đội chơi..." class="flex-grow p-4 text-lg border-2 rounded-lg focus:ring-2 focus:ring-offset-2 focus:ring-blue-800 transition">
+                <button onclick="addTeam()" class="elegant-btn font-semibold py-3 px-8 rounded-lg shadow-lg">THÊM ĐỘI</button>
+            </div>
+            <div id="team-list-display" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                
+</div>
+            <div class="mt-8 text-center">
+                <button id="start-game-btn" onclick="startGame()" class="elegant-btn bg-green-700 hover:bg-green-800 font-bold py-4 px-16 rounded-lg text-lg disabled:bg-gray-400" disabled>BẮT ĐẦU VƯƠNG TRIỀU</button>
+            </div>
+        </div>
+
+        
+<div id="game-section" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-10">
+            
+            
+<div class="lg:col-span-1 bg-gray-50 p-6 rounded-xl shadow-inner border border-gray-300" style="background-color: rgba(255, 255, 255, 0.85);">
+                <h3 class="text-2xl font-bold mb-5 border-b pb-3" style="border-color: var(--color-gold); color: var(--color-dark-navy);">Bảng Xếp Hạng & Danh Dự</h3>
+                <div id="team-status-container" class="space-y-4">
+                    
+</div>
+            </div>
+
+            
+<div class="lg:col-span-2">
+                <div id="game-controls" class="rounded-xl shadow-2xl">
+                    <div id="current-selected-team" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-700 text-yellow-800 font-bold text-xl rounded-lg shadow-md">
+                        CHƯA CHỌN ĐỘI CHƠI
+                    </div>
+
+                    <h3 class="text-3xl font-bold mb-6" style="color: var(--color-dark-navy);">II. Khu Vực Thử Thách Trí Tuệ</h3>
+                    
+                    <div id="quiz-area" class="space-y-6">
+                        <p id="question-text" class="text-2xl font-semibold text-gray-700 min-h-[5rem] p-3 border-b-2 border-gray-200 italic">
+                            
+</p>
+                        <div id="answers-container" class="grid grid-cols-1 gap-4">
+                            <button class="answer-btn p-4 rounded-lg text-left text-lg" onclick="handleAnswer(0)">A. </button>
+                            <button class="answer-btn p-4 rounded-lg text-left text-lg" onclick="handleAnswer(1)">B. </button>
+                            <button class="answer-btn p-4 rounded-lg text-left text-lg" onclick="handleAnswer(2)">C. </button>
+                            <button class="answer-btn p-4 rounded-lg text-left text-lg" onclick="handleAnswer(3)">D. </button>
+                        </div>
+                    </div>
+
+                    <div id="answer-result" class="mt-8 p-5 rounded-lg text-center font-extrabold text-xl shadow-md hidden transition duration-300"></div>
+                    
+                    <div class="mt-8 flex justify-between items-center border-t pt-5 border-gray-300">
+                        <span id="question-counter" class="text-gray-500 font-medium text-lg">Câu hỏi 1 / 5</span>
+                        <button onclick="nextQuestion()" class="elegant-btn py-3 px-8 rounded-lg transition duration-150 bg-gray-600 hover:bg-gray-700">Tiếp Tục</button>
+                    </div>
+
+                    <div class="mt-10 text-center border-t pt-5 border-gray-300">
+                        <button onclick="showFinalSummaryModal()" class="elegant-btn bg-purple-700 hover:bg-purple-800 font-bold py-4 px-12 rounded-lg text-xl shadow-xl">
+                            TỔNG KẾT VƯƠNG QUYỀN (MỞ THẺ)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    
+<div id="card-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4">
+        <div class="rounded-xl p-10 shadow-2xl max-w-md w-full transform scale-95 transition-all duration-300">
+            <h3 class="text-3xl font-bold mb-4 text-center" style="color: var(--color-dark-navy);">BỐC THẺ BÍ MẬT</h3>
+            <p id="card-modal-team-name" class="text-center text-xl font-extrabold mb-6" style="color: var(--color-gold);"></p>
+            
+            <div id="card-content" class="min-h-[8rem] bg-amber-50 border-4 border-amber-500 p-6 rounded-xl text-center shadow-lg transform rotate-1 transition duration-500 hover:rotate-0">
+                <p class="text-2xl font-extrabold text-amber-800" id="card-text">Chúc mừng! Bạn nhận được...</p>
+            </div>
+
+            <div id="steal-options" class="mt-6 space-y-3 hidden">
+                <p class="text-base font-semibold text-red-700 p-2 bg-red-100 rounded-lg border-l-4 border-red-500">Quyền lợi đặc biệt: Lấy 1 thẻ từ đội cấp dưới!</p>
+                <select id="steal-target-select" class="w-full p-3 border-2 border-gray-400 rounded-lg text-gray-700"></select>
+                <button onclick="performSteal()" class="elegant-btn w-full bg-red-700 hover:bg-red-800 py-3 rounded-lg font-semibold transition">Thực hiện Lấy Thẻ</button>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button onclick="closeCardModal()" class="elegant-btn bg-green-700 hover:bg-green-800 font-bold py-3 px-10 rounded-lg">HOÀN TẤT</button>
+            </div>
+        </div>
+    </div>
+
+    
+<div id="custom-message-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4">
+        <div class="rounded-xl p-10 shadow-2xl max-w-md w-full transform scale-95 transition-all duration-300">
+            <h3 id="msg-title" class="text-3xl font-bold mb-4 text-center" style="color: var(--color-dark-navy);">Thông Báo</h3>
+            
+            <div id="msg-content-box" class="min-h-[8rem] border-4 p-6 rounded-xl text-center shadow-lg">
+                <p class="text-2xl font-extrabold" id="msg-text">Nội dung thông báo</p>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button onclick="hideCustomMessage()" class="elegant-btn bg-gray-600 hover:bg-gray-700 font-bold py-3 px-10 rounded-lg">ĐÓNG</button>
+            </div>
+        </div>
+    </div>
+    
+    
+<div id="summary-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="rounded-xl p-10 shadow-2xl max-w-5xl w-full my-8 transform transition-all duration-300">
+            <h3 class="text-4xl font-extrabold text-center mb-8 border-b-4 border-double pb-4" style="color: var(--color-dark-navy); border-color: var(--color-gold);">TỔNG KẾT & MỞ THẺ BÍ MẬT</h3>
+            
+            <div id="final-summary-content" class="space-y-6">
+                
+</div>
+
+            <div class="mt-10 text-center">
+                <button onclick="hideFinalSummaryModal()" class="elegant-btn bg-gray-600 hover:bg-gray-700 font-bold py-3 px-10 rounded-lg">ĐÓNG BẢNG TỔNG KẾT</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    // -------------------------------------------
+    // 1. DỮ LIỆU CỐ ĐỊNH (RANKS, CARDS, QUESTIONS)
+    // -------------------------------------------
+
+    const RANKS = ["Vô gia cư", "Nông dân", "Địa chủ", "Quan", "Vua"];
+    // Giữ nguyên màu sắc đậm để dễ phân biệt, nhưng đã được điều chỉnh trong CSS
+    const RANK_COLORS = ["#b91c1c", "#b45309", "#a16207", "#065f46", "#1e40af"]; 
+    const POINTS_TO_ADVANCE = 2; // Cần 2 câu đúng để thăng cấp
+
+    // Danh sách thẻ bí mật
+    const CARDS = [
+        { type: 'applause', name: 'Thẻ: Vỗ tay', value: 1, text: 'Thẻ: Vỗ tay 1 tràng (1 điểm cộng).' },
+        { type: 'applause', name: 'Thẻ: Vỗ tay lớn', value: 2, text: 'Thẻ: Vỗ tay 2 tràng (2 điểm cộng).' },
+        { type: 'sing', name: 'Thẻ: Ca hát', value: 0, text: 'Thẻ: Hát 1 bài (Hoàn thành nhiệm vụ nhận 3 điểm cộng).' },
+        { type: 'action', name: 'Thẻ: Hóa giải', value: 0, text: 'Thẻ: Có thể vô hiệu hóa 1 thẻ bất kỳ của đội khác.' },
+        { type: 'rank_up', name: 'Thẻ: Thăng bậc', value: 1, text: 'Thẻ: Tăng ngay 1 cấp bậc! (GM thực hiện ngay).' },
+        { type: 'steal', name: 'Thẻ: Chiếm đoạt', value: 0, text: 'Thẻ: Lấy 1 thẻ bí mật của đội cấp dưới bất kỳ. (GM thực hiện ngay).' },
+    ];
+
+    // Danh sách câu hỏi (Tổng cộng 35 câu: 5 câu cũ + 30 câu mới từ tệp Word)
+    const QUESTIONS = [
+        // --- 5 CÂU HỎI MẪU CŨ ---
+        {
+            question: "Trong triết học, 'Cái Riêng' là gì?",
+            answers: ["Một sự vật, hiện tượng cụ thể, đơn lẻ.", "Thuộc tính chung của nhiều sự vật.", "Tổng hợp tất cả các thuộc tính của sự vật.", "Những nét đặc trưng riêng biệt của một cá thể."],
+            correctIndex: 0
+        },
+        {
+            question: "Quan niệm cho rằng 'Cái Chung chỉ tồn tại trong Cái Riêng' là của trường phái triết học nào?",
+            answers: ["Chủ nghĩa duy tâm khách quan.", "Chủ nghĩa duy vật biện chứng.", "Chủ nghĩa duy tâm chủ quan.", "Chủ nghĩa duy vật siêu hình."],
+            correctIndex: 1
+        },
+        {
+            question: "Điểm khác biệt cơ bản nhất giữa 'Cái Chung' và 'Cái Đơn Nhất' là gì?",
+            answers: ["Cái Đơn Nhất chỉ xuất hiện một lần, Cái Chung xuất hiện nhiều lần.", "Cái Chung tồn tại khách quan, Cái Đơn Nhất là chủ quan.", "Cái Chung là toàn bộ, Cái Đơn Nhất là bộ phận.", "Cái Đơn Nhất là thuộc tính không lặp lại, Cái Chung là thuộc tính lặp lại ở nhiều cái riêng."],
+            correctIndex: 3
+        },
+        {
+            question: "Trong câu 'Mọi học sinh đều phải tuân thủ nội quy nhà trường', nội quy nhà trường đóng vai trò là gì?",
+            answers: ["Cái Riêng", "Cái Chung", "Cái Đơn Nhất", "Không phải các đáp án trên"],
+            correctIndex: 1
+        },
+        {
+            question: "Mối quan hệ nào sau đây phản ánh đúng quy luật 'Cái Chung tạo nên Cái Riêng' theo quan điểm biện chứng?",
+            answers: ["Tính phổ biến của trọng lực trong vũ trụ.", "Đặc điểm riêng của một con người.", "Sự tiến hóa của loài người.", "Quá trình hình thành một ngôi sao mới."],
+            correctIndex: 0
+        },
+        
+        // --- 30 CÂU HỎI MỚI TỪ TỆP WORD ---
+        // Câu 1: Theo Triết học Mác – Lênin, phạm trù nào dùng để chỉ một sự vật, hiện tượng, quá trình nhất định, tồn tại độc lập tương đối?
+        {
+            question: "Theo Triết học Mác – Lênin, phạm trù nào dùng để chỉ một sự vật, hiện tượng, quá trình nhất định, tồn tại độc lập tương đối?",
+            answers: ["Cái Chung", "Cái Riêng", "Cái Đơn nhất", "Cả A và B"],
+            correctIndex: 1 
+        },
+        // Câu 2: Phạm trù nào dùng để chỉ những mặt, những thuộc tính, những yếu tố, những quan hệ lặp lại phổ biến ở nhiều sự vật, hiện tượng, quá trình?
+        {
+            question: "Phạm trù nào dùng để chỉ những mặt, những thuộc tính, những yếu tố, những quan hệ lặp lại phổ biến ở nhiều sự vật, hiện tượng, quá trình?",
+            answers: ["Cái Đơn nhất", "Cái Đặc thù", "Cái Riêng", "Cái Chung"],
+            correctIndex: 3 
+        },
+        // Câu 3: Phạm trù nào dùng để chỉ những thuộc tính, tính chất chỉ tồn tại ở một cái riêng nhất định, không lặp lại ở cái riêng nào khác?
+        {
+            question: "Phạm trù nào dùng để chỉ những thuộc tính, tính chất chỉ tồn tại ở một cái riêng nhất định, không lặp lại ở cái riêng nào khác?",
+            answers: ["Cái Bản chất", "Cái Đơn nhất", "Cái Chung", "Cái Tất nhiên"],
+            correctIndex: 1 
+        },
+        // Câu 4: Tính chất chung, lặp lại của tất cả các loài hoa (như có cuống, có cánh, có nhụy...) là biểu hiện của phạm trù nào?
+        {
+            question: "Tính chất chung, lặp lại của tất cả các loài hoa (như có cuống, có cánh, có nhụy...) là biểu hiện của phạm trù nào?",
+            answers: ["Cái Đơn nhất", "Cái Riêng", "Cái Chung", "Cái ngẫu nhiên"],
+            correctIndex: 2 
+        },
+        // Câu 5: Đặc điểm sinh học của một cá thể người cụ thể, không lặp lại ở người khác (như dấu vân tay, cấu tạo ADN) là biểu hiện của phạm trù nào?
+        {
+            question: "Đặc điểm sinh học của một cá thể người cụ thể, không lặp lại ở người khác (như dấu vân tay, cấu tạo ADN) là biểu hiện của phạm trù nào?",
+            answers: ["Cái Chung", "Cái Bản chất", "Cái Đơn nhất", "Cái Riêng"],
+            correctIndex: 2 
+        },
+        // Câu 6: Trong Triết học, phạm trù Cái Riêng được hình thành do sự thống nhất giữa các mặt nào?
+        {
+            question: "Trong Triết học, phạm trù Cái Riêng được hình thành do sự thống nhất giữa các mặt nào?",
+            answers: ["Cái Chung và Cái Bản chất", "Cái Chung và Cái Đơn nhất", "Cái Bản chất và Cái Đặc thù", "Cái Riêng và Cái Đơn nhất"],
+            correctIndex: 1 
+        },
+        // Câu 7: Quan hệ giữa Cái Chung và Cái Riêng là quan hệ như thế nào?
+        {
+            question: "Quan hệ giữa Cái Chung và Cái Riêng là quan hệ như thế nào?",
+            answers: ["Độc lập, không liên quan", "Biện chứng, thống nhất với nhau", "Bên ngoài, tách rời nhau", "Cái riêng tiêu diệt cái chung"],
+            correctIndex: 1 
+        },
+        // Câu 8: Theo Triết học Mác – Lênin, Cái Chung có tồn tại độc lập, tách rời Cái Riêng không?
+        {
+            question: "Theo Triết học Mác – Lênin, Cái Chung có tồn tại độc lập, tách rời Cái Riêng không?",
+            answers: ["Có, nó tồn tại dưới dạng ý niệm.", "Không, cái chung chỉ tồn tại trong cái riêng.", "Tùy thuộc vào nhận thức của con người.", "Có, nếu nó là cái tất yếu."],
+            correctIndex: 1 
+        },
+        // Câu 9: Tính chất nào sau đây là đặc điểm của Cái Chung?
+        {
+            question: "Tính chất nào sau đây là đặc điểm của Cái Chung?",
+            answers: ["Chỉ tồn tại ở một cái riêng duy nhất.", "Là những thuộc tính lặp lại ở nhiều cái riêng.", "Luôn đồng nhất với cái riêng.", "Biến mất khi cái riêng mất đi."],
+            correctIndex: 1 
+        },
+        // Câu 10: Theo Triết học Mác – Lênin, Cái Riêng tồn tại trong mối liên hệ với cái chung. Điều này có ý nghĩa gì?
+        {
+            question: "Theo Triết học Mác – Lênin, Cái Riêng tồn tại trong mối liên hệ với cái chung. Điều này có ý nghĩa gì?",
+            answers: ["Cái riêng chỉ là sự biểu hiện của cái chung.", "Cái chung là cơ sở tồn tại của cái riêng.", "Cái riêng là cái toàn bộ, phong phú hơn cái chung.", "Cái riêng không thể chuyển hóa thành cái chung."],
+            correctIndex: 2 
+        },
+        // Câu 11: Nội dung nào sau đây là sai khi nói về mối quan hệ giữa Cái Chung và Cái Riêng?
+        {
+            question: "Nội dung nào sau đây là sai khi nói về mối quan hệ giữa Cái Chung và Cái Riêng?",
+            answers: ["Cái chung tồn tại trong cái riêng.", "Cái riêng phong phú hơn cái chung.", "Cái chung tồn tại tuyệt đối, tách rời cái riêng.", "Cái chung và cái riêng có thể chuyển hóa cho nhau."],
+            correctIndex: 2 
+        },
+        // Câu 12: Câu nói "Bàn tay ta làm nên tất cả/ Có sức người sỏi đá cũng thành cơm" thể hiện mối quan hệ biện chứng nào?
+        {
+            question: "Câu nói 'Bàn tay ta làm nên tất cả/ Có sức người sỏi đá cũng thành cơm' thể hiện mối quan hệ biện chứng nào?",
+            answers: ["Cái Riêng và Cái Chung", "Khả năng và Hiện thực", "Nguyên nhân và Kết quả", "Cái Tất nhiên và Cái Ngẫu nhiên"],
+            correctIndex: 1 
+        },
+        // Câu 13: Quan điểm nào sau đây thuộc về Chủ nghĩa duy vật siêu hình về mối quan hệ giữa Cái Chung và Cái Riêng?
+        {
+            question: "Quan điểm nào sau đây thuộc về Chủ nghĩa duy vật siêu hình về mối quan hệ giữa Cái Chung và Cái Riêng?",
+            answers: ["Cái chung là ý niệm tiên nghiệm.", "Cái chung chỉ là tên gọi rỗng tuếch.", "Cái chung tồn tại bên ngoài, độc lập với cái riêng.", "Cái riêng là tổng hòa của cái chung và cái đơn nhất."],
+            correctIndex: 2 
+        },
+        // Câu 14: Tính quy luật là một biểu hiện của phạm trù nào?
+        {
+            question: "Tính quy luật là một biểu hiện của phạm trù nào?",
+            answers: ["Cái Đơn nhất", "Cái Bản chất", "Cái Chung", "Cái Ngẫu nhiên"],
+            correctIndex: 2 
+        },
+        // Câu 15: Theo Triết học Mác – Lênin, cái nào là cái toàn bộ, cái phong phú hơn, đa dạng hơn?
+        {
+            question: "Theo Triết học Mác – Lênin, cái nào là cái toàn bộ, cái phong phú hơn, đa dạng hơn?",
+            answers: ["Cái Chung", "Cái Riêng", "Cái Đơn nhất", "Cái Đặc thù"],
+            correctIndex: 1 
+        },
+        // Câu 16: Khi giải quyết một vấn đề cụ thể (Cái Riêng), cần phải dựa trên tri thức về:
+        {
+            question: "Khi giải quyết một vấn đề cụ thể (Cái Riêng), cần phải dựa trên tri thức về:",
+            answers: ["Cá biệt, đặc thù của vấn đề đó.", "Cái Chung, quy luật phổ biến.", "Kinh nghiệm chủ quan.", "Cả A và B đều đúng."],
+            correctIndex: 3 
+        },
+        // Câu 17: Quan điểm nào sau đây là đúng theo Triết học Mác – Lênin?
+        {
+            question: "Quan điểm nào sau đây là đúng theo Triết học Mác – Lênin?",
+            answers: ["Cái chung là cái ngẫu nhiên.", "Cái chung không tách rời cái riêng.", "Cái riêng tồn tại bên ngoài cái chung.", "Cái đơn nhất là cái không lặp lại."],
+            correctIndex: 1 
+        },
+        // Câu 18: Sự khác biệt cơ bản giữa Cái Chung và Cái Bản chất là gì?
+        {
+            question: "Sự khác biệt cơ bản giữa Cái Chung và Cái Bản chất là gì?",
+            answers: ["Cái chung là thuộc tính lặp lại, Cái bản chất là thuộc tính tất yếu.", "Cái chung chỉ tồn tại trong cái riêng, Cái bản chất tồn tại độc lập.", "Cái chung là cái toàn bộ, Cái bản chất là cái bộ phận.", "Cái chung là khách quan, Cái bản chất là chủ quan."],
+            correctIndex: 0 
+        },
+        // Câu 19: Để nhận thức được Cái Chung, con người phải làm gì?
+        {
+            question: "Để nhận thức được Cái Chung, con người phải làm gì?",
+            answers: ["Trực quan cảm tính.", "Quan sát cái đơn nhất.", "Phân tích, tổng hợp cái riêng, trừu tượng hóa.", "Ghi nhớ các thuộc tính."],
+            correctIndex: 2 
+        },
+        // Câu 20: Ví dụ nào sau đây thể hiện Cái Riêng bao gồm Cái Chung?
+        {
+            question: "Ví dụ nào sau đây thể hiện Cái Riêng bao gồm Cái Chung?",
+            answers: ["Tất cả sinh viên (chung) đều phải học Triết học.", "Một con người (riêng) có thuộc tính là vật chất (chung).", "Dấu vân tay (đơn nhất) của một người.", "Lớp học (riêng) và trường học (chung)."],
+            correctIndex: 1 
+        },
+        // Câu 21: Nếu tuyệt đối hóa Cái Chung sẽ dẫn đến sai lầm nào trong nhận thức và hành động?
+        {
+            question: "Nếu tuyệt đối hóa Cái Chung sẽ dẫn đến sai lầm nào trong nhận thức và hành động?",
+            answers: ["Rơi vào chủ nghĩa duy tâm.", "Rơi vào chủ nghĩa giáo điều, rập khuôn.", "Rơi vào chủ nghĩa kinh nghiệm.", "Rơi vào chủ nghĩa chiết trung."],
+            correctIndex: 1 
+        },
+        // Câu 22: Nếu tuyệt đối hóa Cái Riêng sẽ dẫn đến sai lầm nào trong nhận thức và hành động?
+        {
+            question: "Nếu tuyệt đối hóa Cái Riêng sẽ dẫn đến sai lầm nào trong nhận thức và hành động?",
+            answers: ["Rơi vào chủ nghĩa kinh nghiệm, không nhìn thấy quy luật.", "Rơi vào chủ nghĩa giáo điều.", "Rơi vào chủ nghĩa duy lý.", "Rơi vào chủ nghĩa chiết trung."],
+            correctIndex: 0 
+        },
+        // Câu 23: Việc áp dụng máy móc, rập khuôn kinh nghiệm của nước ngoài vào điều kiện cụ thể của Việt Nam là sai lầm do tuyệt đối hóa phạm trù nào?
+        {
+            question: "Việc áp dụng máy móc, rập khuôn kinh nghiệm của nước ngoài vào điều kiện cụ thể của Việt Nam là sai lầm do tuyệt đối hóa phạm trù nào?",
+            answers: ["Cái Riêng", "Cái Đơn nhất", "Cái Chung", "Cái Bản chất"],
+            correctIndex: 2 
+        },
+        // Câu 24: Tính chất nào sau đây là đặc điểm của Cái Đơn nhất?
+        {
+            question: "Tính chất nào sau đây là đặc điểm của Cái Đơn nhất?",
+            answers: ["Tồn tại phổ biến ở nhiều sự vật.", "Là những thuộc tính lặp lại ở nhiều cái riêng.", "Không lặp lại ở bất cứ cái riêng nào khác.", "Luôn đồng nhất với Cái Chung."],
+            correctIndex: 2 
+        },
+        // Câu 25: Mối quan hệ nào sau đây phản ánh đúng tính thống nhất giữa Cái Chung và Cái Riêng?
+        {
+            question: "Mối quan hệ nào sau đây phản ánh đúng tính thống nhất giữa Cái Chung và Cái Riêng?",
+            answers: ["Cái chung tách rời cái riêng.", "Cái riêng là cái duy nhất tồn tại.", "Cái chung chỉ là tổng cộng các cái riêng.", "Cái chung tồn tại thông qua và trong cái riêng."],
+            correctIndex: 3 
+        },
+        // Câu 26: Theo quan điểm biện chứng, quá trình nhận thức phải bắt đầu từ đâu?
+        {
+            question: "Theo quan điểm biện chứng, quá trình nhận thức phải bắt đầu từ đâu?",
+            answers: ["Từ Cái Chung (các quy luật).", "Từ Cái Riêng (các sự vật, hiện tượng cụ thể).", "Từ Cái Đơn nhất (các thuộc tính cá biệt).", "Từ ý niệm chủ quan."],
+            correctIndex: 1 
+        },
+        // Câu 27: Triết học duy vật biện chứng khẳng định điều gì về sự chuyển hóa giữa Cái Chung và Cái Đơn nhất?
+        {
+            question: "Triết học duy vật biện chứng khẳng định điều gì về sự chuyển hóa giữa Cái Chung và Cái Đơn nhất?",
+            answers: ["Bất cứ cái đơn nhất nào cũng là cái chung.", "Cái đơn nhất có thể biến thành cái chung và ngược lại.", "Cái riêng chuyển hóa thành cái đơn nhất.", "Cái chung là bản chất, không thể chuyển hóa."],
+            correctIndex: 1 
+        },
+        // Câu 28: Ví dụ về sự chuyển hóa từ Cái Đơn nhất thành Cái Chung?
+        {
+            question: "Ví dụ về sự chuyển hóa từ Cái Đơn nhất thành Cái Chung?",
+            answers: ["Một giống lúa đột biến (đơn nhất) được nhân rộng thành giống lúa phổ biến (chung).", "Lớp học (chung) có nhiều sinh viên (riêng).", "Dấu vân tay (đơn nhất) của một người.", "Con người (chung) và sinh viên (riêng)."],
+            correctIndex: 0 
+        },
+        // Câu 29: Nếu chỉ nhìn vào đặc điểm cá biệt, độc đáo (Cái Đơn nhất) của một sự vật mà bỏ qua các thuộc tính lặp lại (Cái Chung) sẽ dẫn đến sai lầm nào trong nhận thức?
+        {
+            question: "Nếu chỉ nhìn vào đặc điểm cá biệt, độc đáo (Cái Đơn nhất) của một sự vật mà bỏ qua các thuộc tính lặp lại (Cái Chung) sẽ dẫn đến sai lầm nào trong nhận thức?",
+            answers: ["Siêu hình", "Chiết trung", "Không nắm được bản chất, quy luật", "Duy tâm"],
+            correctIndex: 2 
+        },
+        // Câu 30: Triết học duy vật biện chứng khẳng định: "Cái riêng tồn tại trong mối liên hệ với cái chung". Điều này có ý nghĩa gì về mặt nhận thức?
+        {
+            question: "Triết học duy vật biện chứng khẳng định: 'Cái riêng tồn tại trong mối liên hệ với cái chung'. Điều này có ý nghĩa gì về mặt nhận thức?",
+            answers: ["Chỉ cần nghiên cứu cái chung là đủ.", "Không cần nghiên cứu cái đơn nhất.", "Cần phải xuất phát từ cái riêng để tìm ra cái chung.", "Cái chung là cái độc lập, không cần nghiên cứu cái riêng."],
+            correctIndex: 2 
+        }
+    ];
+
+    // -------------------------------------------
+    // 2. BIẾN TRẠNG THÁI TOÀN CỤC
+    // -------------------------------------------
+    let teams = [];
+    let currentQuestionIndex = 0;
+    let selectedTeamId = null;
+
+    // -------------------------------------------
+    // 3. CÁC HÀM XỬ LÝ CHÍNH
+    // -------------------------------------------
+
+    /**
+     * Thêm đội mới vào danh sách.
+     */
+    function addTeam() {
+        const input = document.getElementById('team-name-input');
+        const name = input.value.trim();
+
+        if (name && teams.length < 6) { // Giới hạn 6 đội
+            const newTeam = {
+                id: teams.length,
+                name: name,
+                rankIndex: 0, // 0: Vô gia cư, 1: Nông dân, ..., 4: Vua
+                correctCount: 0, // Số câu trả lời đúng trong cấp bậc hiện tại (0-1)
+                cards: [], // Danh sách thẻ bí mật
+                isWinner: false,
+            };
+            teams.push(newTeam);
+            input.value = '';
+            renderTeamSetupList();
+            checkStartCondition();
+        } else if (teams.length >= 6) {
+            showCustomMessage("Thông Báo", "Đã đạt giới hạn tối đa 6 đội!", "error");
+        } else {
+            showCustomMessage("Lỗi Nhập Liệu", "Vui lòng nhập tên đội.", "warning");
+        }
+    }
+
+    /**
+     * Cập nhật giao diện danh sách đội ở khu vực Setup.
+     */
+    function renderTeamSetupList() {
+        const listDiv = document.getElementById('team-list-display');
+        listDiv.innerHTML = teams.map(team => `
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl shadow-md border-l-4" style="border-color: var(--color-accent-dark);">
+                <span class="font-bold text-lg text-gray-800">${team.name}</span>
+                <button onclick="removeTeam(${team.id})" class="text-red-600 hover:text-red-800 transition transform hover:scale-110">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * Xóa đội khỏi danh sách.
+     */
+    function removeTeam(id) {
+        teams = teams.filter(team => team.id !== id);
+        // Cần gán lại ID để tránh lỗi trùng lặp khi render
+        teams = teams.map((team, index) => ({ ...team, id: index }));
+        renderTeamSetupList();
+        checkStartCondition();
+    }
+    
+    /**
+     * Kiểm tra điều kiện bắt đầu game.
+     */
+    function checkStartCondition() {
+        const startBtn = document.getElementById('start-game-btn');
+        if (teams.length >= 1 && QUESTIONS.length > 0) {
+            startBtn.disabled = false;
+        } else {
+            startBtn.disabled = true;
+        }
+    }
+
+    /**
+     * Bắt đầu trò chơi.
+     */
+    function startGame() {
+        document.getElementById('setup-section').classList.add('hidden');
+        document.getElementById('game-section').classList.remove('hidden');
+        
+        // Đặt ID đội được chọn mặc định là đội đầu tiên
+        if (teams.length > 0) {
+            selectTeam(teams[0].id);
+        }
+        
+        // Hiển thị câu hỏi đầu tiên
+        loadQuestion(currentQuestionIndex);
+        renderTeamStatus();
+    }
+
+    /**
+     * Chọn đội hiện tại đang trả lời.
+     */
+    function selectTeam(id) {
+        selectedTeamId = id;
+        
+        // Cập nhật giao diện
+        const currentTeamDisplay = document.getElementById('current-selected-team');
+        const team = teams.find(t => t.id === id);
+        currentTeamDisplay.innerHTML = `ĐỘI HIỆN TẠI: <span class="font-extrabold" style="color: var(--color-dark-navy);">${team.name}</span> (Cấp: ${RANKS[team.rankIndex]})`;
+        
+        // Đánh dấu thẻ đội được chọn
+        document.querySelectorAll('.team-card').forEach(card => card.classList.remove('selected'));
+        document.getElementById(`team-card-${id}`)?.classList.add('selected');
+        
+        // Reset kết quả trả lời trước đó
+        const resultDiv = document.getElementById('answer-result');
+        resultDiv.classList.add('hidden');
+        resultDiv.innerHTML = '';
+        document.querySelectorAll('.answer-btn').forEach(btn => btn.classList.remove('bg-green-500', 'bg-red-500', 'text-white'));
+    }
+
+    /**
+     * Cập nhật giao diện trạng thái đội.
+     */
+    function renderTeamStatus() {
+        const container = document.getElementById('team-status-container');
+        // Sắp xếp đội theo cấp bậc (cao nhất lên đầu)
+        const sortedTeams = [...teams].sort((a, b) => b.rankIndex - a.rankIndex); 
+        
+        container.innerHTML = sortedTeams.map(team => {
+            const rankName = RANKS[team.rankIndex];
+            const rankColor = RANK_COLORS[team.rankIndex];
+            const nextRankNeeded = POINTS_TO_ADVANCE - team.correctCount;
+            const progress = (team.correctCount / POINTS_TO_ADVANCE) * 100;
+            const rankStyle = `background-color: ${rankColor}; border: 1px solid var(--color-gold);`;
+            
+            return `
+                <div id="team-card-${team.id}" onclick="selectTeam(${team.id})" class="team-card p-4 rounded-xl border-2 border-transparent">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xl font-bold text-gray-800">${team.name} ${team.isWinner ? '👑' : ''}</span>
+                        <span class="px-3 py-1 text-sm font-bold rounded-full text-white shadow-md" style="${rankStyle}">
+                            ${rankName}
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">Thẻ: <span class="font-bold text-gray-700">${team.cards.length}</span></p>
+                    ${team.rankIndex < RANKS.length - 1 ? `
+                        <p class="text-xs text-gray-500 italic">Cần <span class="font-bold text-lg" style="color: var(--color-gold);">${nextRankNeeded}</span> câu đúng để lên cấp</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1 border border-gray-300">
+                            <div class="h-2.5 rounded-full shadow-inner transition-all duration-500" style="width: ${progress}%; background-color: ${rankColor};"></div>
+                        </div>
+                    ` : `<p class="text-base font-bold text-green-700">ĐÃ ĐẠT CẤP VUA!</p>`}
+                </div>
+            `;
+        }).join('');
+
+        // Đảm bảo đội đang chọn vẫn được highlight
+        if (selectedTeamId !== null) {
+             document.getElementById(`team-card-${selectedTeamId}`)?.classList.add('selected');
+        }
+    }
+
+    /**
+     * Tải câu hỏi tiếp theo.
+     */
+    function loadQuestion(index) {
+        if (index >= QUESTIONS.length) {
+            document.getElementById('question-text').innerHTML = "ĐÃ KẾT THÚC VÒNG THI. Vui lòng nhấn nút Tổng Kết Vương Quyền!";
+            document.getElementById('answers-container').innerHTML = '';
+            document.getElementById('question-counter').innerHTML = `Đã hoàn thành! (Tổng số câu: ${QUESTIONS.length})`;
+            document.querySelectorAll('#game-controls button').forEach(btn => {
+                if(btn.innerText.includes('Tiếp Tục')) btn.disabled = true;
+            });
+            return;
+        }
+
+        const q = QUESTIONS[index];
+        document.getElementById('question-text').innerHTML = `${index + 1}. ${q.question}`;
+        
+        const answerButtons = document.querySelectorAll('.answer-btn');
+        q.answers.forEach((answer, i) => {
+            answerButtons[i].innerHTML = `${String.fromCharCode(65 + i)}. ${answer}`; // A, B, C, D
+            answerButtons[i].disabled = false;
+            answerButtons[i].classList.remove('bg-green-500', 'bg-red-500', 'text-white');
+        });
+
+        document.getElementById('question-counter').innerHTML = `Câu hỏi ${index + 1} / ${QUESTIONS.length}`;
+        document.getElementById('answer-result').classList.add('hidden');
+        document.querySelectorAll('#game-controls button').forEach(btn => {
+            if(btn.innerText.includes('Tiếp Tục')) btn.disabled = false; // Bật lại nút Tiếp Tục
+        });
+    }
+
+    /**
+     * Xử lý khi GM nhập câu trả lời của đội.
+     */
+    function handleAnswer(answerIndex) {
+        if (selectedTeamId === null) {
+            showCustomMessage("Lỗi", 'Vui lòng chọn đội chơi trước khi chấm điểm!', "error");
+            return;
+        }
+        
+        const q = QUESTIONS[currentQuestionIndex];
+        const team = teams.find(t => t.id === selectedTeamId);
+        const resultDiv = document.getElementById('answer-result');
+        const answerButtons = document.querySelectorAll('.answer-btn');
+        
+        // Tắt tất cả nút trả lời
+        answerButtons.forEach(btn => btn.disabled = true);
+        document.querySelectorAll('#game-controls button').forEach(btn => {
+            if(btn.innerText.includes('Tiếp Tục')) btn.disabled = false;
+        });
+
+        // Đánh dấu kết quả
+        if (answerIndex === q.correctIndex) {
+            // ĐÚNG
+            answerButtons[answerIndex].classList.add('bg-green-500', 'text-white');
+            resultDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+            resultDiv.classList.add('bg-green-100', 'text-green-700', 'animate-pulse');
+            resultDiv.innerHTML = 'CHÍNH XÁC! (Đội nhận được 1 thẻ bí mật)';
+            
+            // Xử lý game logic
+            team.correctCount++;
+            
+            // 1. Thăng cấp nếu đủ điểm
+            if (team.correctCount >= POINTS_TO_ADVANCE && team.rankIndex < RANKS.length - 1) {
+                team.rankIndex++;
+                team.correctCount = 0; // Reset điểm đúng
+                resultDiv.innerHTML += `<br> <span class="text-xl font-extrabold" style="color: var(--color-dark-navy);">CHÚC MỪNG! Đội ${team.name} thăng cấp lên: ${RANKS[team.rankIndex]}!</span>`;
+                
+                // Kiểm tra nếu đạt Vua
+                if (team.rankIndex === RANKS.length - 1) {
+                    team.isWinner = true;
+                    resultDiv.innerHTML += `<br> <span class="text-2xl font-extrabold text-purple-700">🎉 ĐẠT CẤP VUA VÀ GIÀNH CHIẾN THẮNG CHUNG CUỘC! 🎉</span>`;
+                }
+            }
+            
+            // 2. Bốc thẻ
+            setTimeout(() => drawCard(team.id), 1000); // Kéo dài thời gian để xem kết quả câu hỏi
+
+        } else {
+            // SAI
+            answerButtons[answerIndex].classList.add('bg-red-500', 'text-white');
+            answerButtons[q.correctIndex].classList.add('bg-green-500', 'text-white'); // Hiện đáp án đúng
+            resultDiv.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'animate-pulse');
+            resultDiv.classList.add('bg-red-100', 'text-red-700');
+            resultDiv.innerHTML = `SAI! Đáp án đúng là ${String.fromCharCode(65 + q.correctIndex)}.`;
+        }
+        
+        setTimeout(() => resultDiv.classList.remove('animate-pulse'), 2000);
+        renderTeamStatus();
+    }
+    
+    /**
+     * Chuyển sang câu hỏi tiếp theo.
+     */
+    function nextQuestion() {
+        currentQuestionIndex++;
+        loadQuestion(currentQuestionIndex);
+        if (teams.length > 0) {
+            selectTeam(teams[0].id); // Mặc định chọn đội đầu tiên cho câu hỏi mới
+        }
+    }
+
+    // -------------------------------------------
+    // 4. XỬ LÝ THẺ BÍ MẬT (CARD LOGIC)
+    // -------------------------------------------
+
+    let currentCard = null; // Thẻ đang được xử lý
+
+    /**
+     * Bốc thẻ ngẫu nhiên cho đội.
+     */
+    function drawCard(teamId) {
+        const team = teams.find(t => t.id === teamId);
+        const card = CARDS[Math.floor(Math.random() * CARDS.length)];
+        currentCard = card; // Lưu thẻ hiện tại để xử lý
+
+        const modal = document.getElementById('card-modal');
+        const cardTitle = modal.querySelector('h3');
+        const cardText = document.getElementById('card-text');
+        const teamNameDisplay = document.getElementById('card-modal-team-name');
+        const cardContentBox = document.getElementById('card-content');
+        const stealOptions = document.getElementById('steal-options');
+        const modalContent = modal.querySelector('div'); 
+        
+        // Cấu hình Modal về trạng thái bốc thẻ
+        cardTitle.innerText = "BỐC THẺ BÍ MẬT";
+        teamNameDisplay.innerText = `Đội ${team.name}`;
+        cardText.innerText = card.text;
+        stealOptions.classList.add('hidden'); 
+        cardContentBox.className = 'min-h-[8rem] bg-amber-50 border-4 border-amber-500 p-6 rounded-xl text-center shadow-lg transform rotate-1 transition duration-500 hover:rotate-0';
+        cardText.className = 'text-2xl font-extrabold text-amber-800';
+
+
+        // Hiển thị Modal
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modalContent.classList.remove('scale-95'); 
+        modalContent.classList.add('scale-100');
+
+        // Xử lý thẻ hành động ngay lập tức
+        if (card.type === 'rank_up') {
+            handleRankUpCard(team);
+        } else if (card.type === 'steal') {
+            showStealOptions(team);
+        } else {
+            // Thẻ thường (applause, sing, action) chỉ cần lưu lại
+            team.cards.push(card);
+        }
+        
+        renderTeamStatus();
+    }
+
+    /**
+     * Xử lý thẻ Tăng Bậc.
+     */
+    function handleRankUpCard(team) {
+        if (team.rankIndex < RANKS.length - 1) {
+            team.rankIndex++;
+            showCustomMessage("Thăng Cấp Ngay Lập Tức!", `Đội ${team.name} đã dùng Thẻ Thăng Bậc! Lên cấp ${RANKS[team.rankIndex]}!`, "success");
+            
+            // Kiểm tra nếu đạt Vua
+            if (team.rankIndex === RANKS.length - 1) {
+                team.isWinner = true;
+                document.getElementById('card-text').innerHTML += `<br> <span class="text-xl font-extrabold text-purple-700">🎉 ĐẠT CẤP VUA! 🎉</span>`;
+            }
+            // Chỉ thay đổi màu viền của card modal hiện tại
+            document.getElementById('card-content').style.borderColor = RANK_COLORS[team.rankIndex]; 
+
+        } else {
+            // Nếu đã là Vua, chuyển thành thẻ khác (Ví dụ: Thẻ Vỗ tay lớn)
+            const fallbackCard = CARDS.find(c => c.value === 2);
+            team.cards.push(fallbackCard);
+            document.getElementById('card-text').innerHTML = `Đội ${team.name} đã ở cấp Vua. Thẻ Thăng Bậc chuyển thành: ${fallbackCard.text}`;
+            document.getElementById('card-content').style.borderColor = '#f59e0b';
+        }
+    }
+
+    /**
+     * Hiển thị tùy chọn Lấy Thẻ.
+     */
+    function showStealOptions(stealingTeam) {
+        const stealOptions = document.getElementById('steal-options');
+        const stealTargetSelect = document.getElementById('steal-target-select');
+        
+        // Tìm các đội có cấp bậc THẤP hơn đội hiện tại VÀ có thẻ
+        const lowerRankedTeams = teams.filter(team => 
+            team.rankIndex < stealingTeam.rankIndex && team.cards.length > 0
+        );
+
+        if (lowerRankedTeams.length === 0) {
+            // Không có đội để lấy thẻ, chuyển thành Thẻ Vỗ tay lớn
+            const fallbackCard = CARDS.find(c => c.value === 2);
+            stealingTeam.cards.push(fallbackCard);
+            document.getElementById('card-text').innerHTML = `Không có đội cấp dưới để lấy thẻ. Thẻ Chiếm Đoạt chuyển thành: ${fallbackCard.text}`;
+            stealOptions.classList.add('hidden');
+        } else {
+            stealOptions.classList.remove('hidden');
+            stealTargetSelect.innerHTML = lowerRankedTeams.map(team => 
+                `<option value="${team.id}">Đội ${team.name} (${RANKS[team.rankIndex]} - ${team.cards.length} thẻ)</option>`
+            ).join('');
+        }
+    }
+
+    /**
+     * Thực hiện hành động Lấy Thẻ.
+     */
+    function performSteal() {
+        const stealingTeam = teams.find(t => t.id === selectedTeamId);
+        const targetId = parseInt(document.getElementById('steal-target-select').value);
+        const targetTeam = teams.find(t => t.id === targetId);
+
+        if (targetTeam && targetTeam.cards.length > 0) {
+            // Lấy thẻ cuối cùng của đội mục tiêu
+            const stolenCard = targetTeam.cards.pop();
+            stealingTeam.cards.push(stolenCard);
+            
+            showCustomMessage("Chiếm Đoạt Thẻ Thành Công", `Đội ${stealingTeam.name} đã lấy thành công thẻ "${stolenCard.name}" của đội ${targetTeam.name}!`, "success");
+            
+            // Cập nhật giao diện và đóng modal
+            document.getElementById('steal-options').classList.add('hidden');
+            document.getElementById('card-text').innerHTML = `ĐÃ HOÀN TẤT LẤY THẺ: Đội ${stealingTeam.name} nhận thêm 1 thẻ. Đội ${targetTeam.name} mất 1 thẻ.`;
+        } else {
+            showCustomMessage("Lỗi Lấy Thẻ", 'Lỗi: Đội mục tiêu không có thẻ hoặc không hợp lệ.', "error");
+        }
+        
+        renderTeamStatus();
+    }
+    
+    /**
+     * Đóng Modal Bốc Thẻ.
+     */
+    function closeCardModal() {
+        const modal = document.getElementById('card-modal');
+        const modalContent = modal.querySelector('div');
+
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.getElementById('steal-options').classList.add('hidden'); // Đảm bảo ẩn Steal options
+        currentCard = null;
+    }
+
+    // -------------------------------------------
+    // 5. MODAL TỔNG KẾT
+    // -------------------------------------------
+
+    /**
+     * Hiển thị modal tổng kết.
+     */
+    function showFinalSummaryModal() {
+        const modal = document.getElementById('summary-modal');
+        const contentDiv = document.getElementById('final-summary-content');
+        contentDiv.innerHTML = ''; // Xóa nội dung cũ
+        const modalContent = modal.querySelector('div');
+
+        // Tính toán tổng điểm (ví dụ đơn giản: Vua = 100đ, Quan = 80đ, Địa chủ = 60đ, Nông dân = 40đ, Vô gia cư = 20đ. Thẻ cộng thêm điểm.)
+        const RANK_POINTS = [20, 40, 60, 80, 100]; 
+        
+        // Mở thẻ và tính điểm
+        teams.forEach(team => {
+            let totalPoints = RANK_POINTS[team.rankIndex];
+            let applauseCount = 0;
+            let singTask = false;
+            let defenseCard = 0;
+
+            team.cards.forEach(card => {
+                if (card.type === 'applause') {
+                    totalPoints += card.value;
+                    applauseCount += card.value;
+                } else if (card.type === 'sing') {
+                    singTask = true;
+                    // Giả định nếu đội có thẻ hát, họ đã hoàn thành nhiệm vụ và được +3 điểm
+                    totalPoints += 3; 
+                } else if (card.type === 'action') {
+                    defenseCard++;
+                }
+            });
+            
+            team.finalScore = totalPoints;
+            team.summary = { applauseCount, singTask, defenseCard };
+        });
+
+        // Sắp xếp theo điểm cuối cùng (cao nhất lên đầu)
+        const finalRankedTeams = [...teams].sort((a, b) => b.finalScore - a.finalScore);
+
+        // Hiển thị kết quả
+        finalRankedTeams.forEach((team, index) => {
+            const rankName = RANKS[team.rankIndex];
+            const rankColor = RANK_COLORS[team.rankIndex];
+            
+            contentDiv.innerHTML += `
+                <div class="p-6 rounded-xl shadow-lg border-l-8 transition duration-300 transform hover:scale-[1.01] ${team.isWinner ? 'border-amber-500 bg-amber-50' : 'border-gray-400 bg-white'}" style="border-color: ${rankColor};">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-3xl font-extrabold text-gray-800 flex items-center" style="font-family: 'Playfair Display', serif;">
+                            #${index + 1}. Đội ${team.name} ${team.isWinner ? '<span class="ml-2 text-4xl" style="color: var(--color-gold);">👑</span>' : ''}
+                        </span>
+                        <span class="text-4xl font-extrabold" style="color: var(--color-dark-navy);">${team.finalScore} điểm</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="px-4 py-1.5 text-base font-bold rounded-lg text-white shadow-md" style="background-color: ${rankColor};">
+                            CẤP BẬC: ${rankName} (${RANK_POINTS[team.rankIndex]} điểm)
+                        </span>
+                        <span class="text-lg text-gray-600 font-semibold">Tổng thẻ còn lại: ${team.cards.length}</span>
+                    </div>
+
+                    <div class="mt-4 p-4 rounded-lg border-2 border-dashed" style="border-color: var(--color-gold); background-color: var(--color-cream);">
+                        <p class="font-bold text-gray-800 mb-2 text-lg">Phân Tích Tài Sản Bí Mật:</p>
+                        <ul class="list-disc list-inside text-base text-gray-700 space-y-1">
+                            <li><span class="font-bold text-green-700">Điểm Thưởng (Vỗ tay):</span> +${team.summary.applauseCount} điểm</li>
+                            <li><span class="font-bold text-blue-700">Nhiệm Vụ Hát:</span> ${team.summary.singTask ? '+3 điểm (Đã hoàn thành)' : 'Không có hoặc chưa hoàn thành'}</li>
+                            <li><span class="font-bold text-red-700">Thẻ Hóa giải/Phòng Thủ:</span> ${team.summary.defenseCard} thẻ</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        });
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }
+
+    /**
+     * Ẩn modal tổng kết.
+     */
+    function hideFinalSummaryModal() {
+        const modal = document.getElementById('summary-modal');
+        const modalContent = modal.querySelector('div');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+
+        setTimeout(() => { // Đợi hiệu ứng kết thúc rồi mới ẩn
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+    
+    // -------------------------------------------
+    // 6. HÀM HIỂN THỊ THÔNG BÁO TÙY CHỈNH (THAY THẾ alert())
+    // -------------------------------------------
+    function showCustomMessage(title, message, type) {
+        // Tái sử dụng modal custom-message-modal mới
+        const modal = document.getElementById('custom-message-modal');
+        const titleEl = document.getElementById('msg-title');
+        const textEl = document.getElementById('msg-text');
+        const contentBox = document.getElementById('msg-content-box');
+        const modalContent = modal.querySelector('div');
+        
+        // Cập nhật nội dung
+        titleEl.innerText = title;
+        textEl.innerHTML = message;
+        
+        // Cập nhật màu sắc dựa trên type
+        let bgColor, borderColor, textColor;
+        if (type === 'success') {
+            bgColor = 'bg-green-50';
+            borderColor = 'border-green-500';
+            textColor = 'text-green-800';
+        } else if (type === 'error') {
+            bgColor = 'bg-red-50';
+            borderColor = 'border-red-500';
+            textColor = 'text-red-800';
+        } else { // warning/default
+            bgColor = 'bg-yellow-50';
+            borderColor = 'border-yellow-500';
+            textColor = 'text-yellow-800';
+        }
+
+        contentBox.className = `min-h-[8rem] border-4 p-6 rounded-xl text-center shadow-lg ${bgColor} ${borderColor}`;
+        textEl.className = `text-2xl font-extrabold ${textColor}`;
+        
+        // Hiển thị Modal
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }
+
+    function hideCustomMessage() {
+        const modal = document.getElementById('custom-message-modal');
+        const modalContent = modal.querySelector('div');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+
+    // -------------------------------------------
+    // 7. KHỞI TẠO
+    // -------------------------------------------
+    window.onload = () => {
+        renderTeamSetupList(); // Khởi tạo danh sách trống
+    }
+</script>
+</body>
+</html>
